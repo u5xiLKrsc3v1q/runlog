@@ -11,6 +11,10 @@ import (
 
 // RunAndPersist executes the command, persists the result to the database,
 // and returns the Result along with the assigned run ID.
+//
+// If the command itself fails (non-zero exit code), the result is still
+// persisted and returned alongside a nil error. An error is only returned
+// when execution cannot be attempted or persistence fails.
 func RunAndPersist(ctx context.Context, database *sql.DB, command string, args ...string) (int64, *Result, error) {
 	cmdLine := buildCmdLine(command, args)
 
@@ -34,6 +38,8 @@ func RunAndPersist(ctx context.Context, database *sql.DB, command string, args .
 	return runID, res, nil
 }
 
+// buildCmdLine joins the command and its arguments into a single space-separated
+// string suitable for display and storage.
 func buildCmdLine(command string, args []string) string {
 	if len(args) == 0 {
 		return command
