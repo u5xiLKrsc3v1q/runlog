@@ -68,6 +68,30 @@ func TestRunAndPersistNonZeroExit(t *testing.T) {
 	}
 }
 
+// TestRunAndPersistStoresCmdLine verifies that the command line string is
+// correctly recorded in the database alongside the run result.
+func TestRunAndPersistStoresCmdLine(t *testing.T) {
+	database := tempDB(t)
+	ctx := context.Background()
+
+	_, _, err := RunAndPersist(ctx, database, "echo", "hello")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	runs, err := db.ListRuns(database, 10)
+	if err != nil {
+		t.Fatalf("list runs: %v", err)
+	}
+	if len(runs) != 1 {
+		t.Fatalf("expected 1 run, got %d", len(runs))
+	}
+	want := "echo hello"
+	if runs[0].CmdLine != want {
+		t.Errorf("expected cmd line %q, got %q", want, runs[0].CmdLine)
+	}
+}
+
 func TestBuildCmdLine(t *testing.T) {
 	if got := buildCmdLine("echo", nil); got != "echo" {
 		t.Errorf("got %q", got)
